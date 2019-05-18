@@ -1,22 +1,33 @@
 #pragma once
 
 #include "Kaleidoscope-LEDControl.h"
-#include "LEDUtils.h"
 
 namespace kaleidoscope {
+namespace plugin {
 class LEDJointEffect : public LEDMode {
  public:
   LEDJointEffect(void) {}
+  EventHandlerResult beforeReportingState();
+  EventHandlerResult onSetup();
+
+  typedef struct settings_t {
+    uint16_t split;
+    uint16_t joined;
+  } settings_t;
+
+  static settings_t settings;
 
  protected:
   void update(void) final;
 
  private:
-  uint8_t current_anim_counter = 0;
-  int anim_level = 0;
-  static const uint8_t anim_threshold = 10;
-  static const unsigned int joint_threshold = 790;
+  static uint8_t anim_timer;
+  static int anim_level;
+  static uint16_t joint_threshold;
+  static const uint8_t anim_timeout = 10;
+  static uint16_t settings_base_;
 };
 }
+}
 
-extern kaleidoscope::LEDJointEffect LEDJointEffect;
+extern kaleidoscope::plugin::LEDJointEffect LEDJointEffect;
