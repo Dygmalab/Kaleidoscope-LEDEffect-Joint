@@ -9,10 +9,13 @@ class LEDJointEffect : public LEDMode {
   LEDJointEffect(void) {}
   EventHandlerResult beforeReportingState();
   EventHandlerResult onSetup();
+  EventHandlerResult onFocusEvent(const char *command);
 
   typedef struct settings_t {
     uint16_t split;
     uint16_t joined;
+    uint16_t threshold;
+    uint16_t anim_speed;
   } settings_t;
 
   static settings_t settings;
@@ -23,9 +26,8 @@ class LEDJointEffect : public LEDMode {
  private:
   static uint8_t anim_timer;
   static int anim_level;
-  static uint16_t joint_threshold;
-  static const uint8_t anim_timeout = 10;
   static uint16_t settings_base_;
+
 };
 }
 }
