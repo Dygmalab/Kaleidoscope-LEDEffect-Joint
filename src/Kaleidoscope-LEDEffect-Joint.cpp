@@ -2,6 +2,8 @@
 #include <Kaleidoscope-EEPROM-Settings.h>
 #include <Kaleidoscope-FocusSerial.h>
 
+#include "kaleidoscope/Runtime.h"
+
 namespace kaleidoscope {
 namespace plugin {
 
@@ -23,13 +25,13 @@ EventHandlerResult LEDJointEffect::onSetup() {
   // If split is max, assume that EEPROM is uninitialized, and store the
   // defaults.
   uint16_t split;
-  KeyboardHardware.storage().get(settings_base_, split);
+  Runtime.storage().get(settings_base_, split);
   if (split == 0xffff) {
-    KeyboardHardware.storage().put(settings_base_, settings);
-    KeyboardHardware.storage().commit();
+    Runtime.storage().put(settings_base_, settings);
+    Runtime.storage().commit();
   }
 
-  KeyboardHardware.storage().get(settings_base_, settings);
+  Runtime.storage().get(settings_base_, settings);
   return EventHandlerResult::OK;
 }
 
@@ -37,20 +39,20 @@ EventHandlerResult LEDJointEffect::onSetup() {
 EventHandlerResult LEDJointEffect::beforeReportingState() {
   // 1st row left 3 keys to set joined level
   bool changed = false;
-  if (KeyboardHardware.isKeyswitchPressed(0,13) && // RHS 1st row, right 3 keys
-      KeyboardHardware.isKeyswitchPressed(0,14) &&
-      KeyboardHardware.isKeyswitchPressed(0,15) &&
-      KeyboardHardware.pressedKeyswitchCount() == 3) {
+  if (Runtime.device().isKeyswitchPressed(0,13) && // RHS 1st row, right 3 keys
+      Runtime.device().isKeyswitchPressed(0,14) &&
+      Runtime.device().isKeyswitchPressed(0,15) &&
+      Runtime.device().pressedKeyswitchCount() == 3) {
       changed = true;
-      settings.joined = KeyboardHardware.readJoint();
+      settings.joined = Runtime.device().settings.joint();
   }
   // 2nd row left 3 keys to set split level
-  if (KeyboardHardware.isKeyswitchPressed(1,13) && // RHS 2nd row, right 3 keys
-      KeyboardHardware.isKeyswitchPressed(1,14) &&
-      KeyboardHardware.isKeyswitchPressed(2,15) && // this is why should be using R0C15, which would map to the reversed ANSI/ISO key
-      KeyboardHardware.pressedKeyswitchCount() == 3) {
+  if (Runtime.device().isKeyswitchPressed(1,13) && // RHS 2nd row, right 3 keys
+      Runtime.device().isKeyswitchPressed(1,14) &&
+      Runtime.device().isKeyswitchPressed(2,15) && // this is why should be using R0C15, which would map to the reversed ANSI/ISO key
+      Runtime.device().pressedKeyswitchCount() == 3) {
       changed = true;
-      settings.split = KeyboardHardware.readJoint();
+      settings.split = Runtime.device().settings.joint();
   }
 
   if(changed) {
@@ -61,8 +63,8 @@ EventHandlerResult LEDJointEffect::beforeReportingState() {
           settings.threshold = (settings.joined - settings.split) / 2 + settings.split;
 
       // commit the changes
-      KeyboardHardware.storage().put(settings_base_, settings);
-      KeyboardHardware.storage().commit();
+      Runtime.storage().put(settings_base_, settings);
+      Runtime.storage().commit();
   }
 
   return EventHandlerResult::OK;
@@ -106,8 +108,8 @@ EventHandlerResult LEDJointEffect::onFocusEvent(const char *command) {
   else
     return EventHandlerResult::OK;
 
-  KeyboardHardware.storage().put(settings_base_, settings);
-  KeyboardHardware.storage().commit();
+  Runtime.storage().put(settings_base_, settings);
+  Runtime.storage().commit();
   return EventHandlerResult::EVENT_CONSUMED;
 }
 
@@ -117,7 +119,7 @@ void LEDJointEffect::update(void) {
   }
   anim_timer = 0;
 
-  int joint = KeyboardHardware.readJoint();
+  int joint = Runtime.device().settings.joint();
 
   // animate the colour change
   if(joint > settings.threshold)
